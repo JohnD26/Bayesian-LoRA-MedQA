@@ -216,9 +216,6 @@ class WrapperBase(PeftModel):
                 acc, nll_loss = acc.item(), nll.detach().cpu().numpy()
 
                 if self.args.dataset_type == "mcdataset":
-                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
-                    if isinstance(batch, tuple) and len(batch) == 4:
-                        batch = batch[:3]  # Drop metadata for training
                     _, classes, _ = batch
                     references = self.accelerator.gather(classes)
                 else:

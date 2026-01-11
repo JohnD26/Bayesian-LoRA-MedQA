@@ -510,9 +510,6 @@ class BLoB(WrapperBase):
                 )
 
                 if self.args.dataset_type == "mcdataset":
-                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
-                    if isinstance(batch, tuple) and len(batch) == 4:
-                        batch = batch[:3]  # Drop metadata for training
                     _, classes, _ = batch
                     references = self.accelerator.gather(classes)
                 else:
@@ -572,9 +569,6 @@ class BLoB(WrapperBase):
                     n_samples=self.eval_n_samples,
                 ).detach()
                 if self.args.dataset_type == "mcdataset":
-                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
-                    if isinstance(batch, tuple) and len(batch) == 4:
-                        batch = batch[:3]  # Drop metadata for training
                     _, labels, _ = batch
                 else:
                     labels = batch["labels"]
