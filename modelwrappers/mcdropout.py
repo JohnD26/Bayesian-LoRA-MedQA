@@ -55,6 +55,9 @@ class MCDropout(WrapperBase):
 
     def forward_logits(self, batch, sample=True, n_samples=1, **kwargs) -> torch.Tensor:
         if self.args.dataset_type == "mcdataset":
+            # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+            if isinstance(batch, tuple) and len(batch) == 4:
+                batch = batch[:3]  # Drop metadata, keep (prompts, classes, targets)
             inputs, _, _ = batch
             if not sample:
                 res = self.base_model(**inputs)

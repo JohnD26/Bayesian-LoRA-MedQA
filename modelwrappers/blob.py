@@ -414,6 +414,9 @@ class BLoB(WrapperBase):
 
     def forward_logits(self, batch, sample=True, n_samples=1, **kwargs) -> torch.Tensor:
         if self.args.dataset_type == "mcdataset":
+            # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+            if isinstance(batch, tuple) and len(batch) == 4:
+                batch = batch[:3]  # Drop metadata, keep (prompts, classes, targets)
             inputs, _, _ = batch
             if not sample:
                 self.sample(self.base_model, False)
@@ -453,6 +456,9 @@ class BLoB(WrapperBase):
         ) as pbar:
             for i, batch in enumerate(train_loader):
                 if self.args.dataset_type == "mcdataset":
+                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                    if isinstance(batch, tuple) and len(batch) == 4:
+                        batch = batch[:3]  # Drop metadata for training
                     _, golds, _ = batch
                 elif self.args.dataset_type == "bertds":
                     golds = batch["labels"]
@@ -504,6 +510,9 @@ class BLoB(WrapperBase):
                 )
 
                 if self.args.dataset_type == "mcdataset":
+                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                    if isinstance(batch, tuple) and len(batch) == 4:
+                        batch = batch[:3]  # Drop metadata for training
                     _, classes, _ = batch
                     references = self.accelerator.gather(classes)
                 else:
@@ -563,6 +572,9 @@ class BLoB(WrapperBase):
                     n_samples=self.eval_n_samples,
                 ).detach()
                 if self.args.dataset_type == "mcdataset":
+                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                    if isinstance(batch, tuple) and len(batch) == 4:
+                        batch = batch[:3]  # Drop metadata for training
                     _, labels, _ = batch
                 else:
                     labels = batch["labels"]

@@ -56,6 +56,9 @@ class DeepEnsemble(WrapperBase):
         def single_train_iter(self, batch, opt, scheduler):
             """original MLE training script."""
             if self.args.dataset_type == "mcdataset":
+                # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                if isinstance(batch, tuple) and len(batch) == 4:
+                    batch = batch[:3]  # Drop metadata for training
                 prompts, classes, _ = batch
                 inputs = prompts.to(self.accelerator.device)
                 golds = classes.to(self.accelerator.device)
@@ -101,6 +104,9 @@ class DeepEnsemble(WrapperBase):
                     nll_loss, acc = single_train_iter(self, batch, opt, scheduler)
 
                 if self.args.dataset_type == "mcdataset":
+                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                    if isinstance(batch, tuple) and len(batch) == 4:
+                        batch = batch[:3]  # Drop metadata for training
                     _, classes, _ = batch
                     references = self.accelerator.gather(classes)
                 else:
@@ -135,6 +141,9 @@ class DeepEnsemble(WrapperBase):
 
     def forward_logits(self, batch, **kwargs) -> torch.Tensor:
         if self.args.dataset_type == "mcdataset":
+            # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+            if isinstance(batch, tuple) and len(batch) == 4:
+                batch = batch[:3]  # Drop metadata, keep (prompts, classes, targets)
             inputs, _, _ = batch
             # ensemble the results.
             logits_list = []
@@ -167,6 +176,9 @@ class DeepEnsemble(WrapperBase):
         for step, batch in enumerate(eval_loader):
             with torch.no_grad() and torch.inference_mode():
                 if self.args.dataset_type == "mcdataset":
+                    # Handle both 3-tuple (old) and 4-tuple (new with metadata)
+                    if isinstance(batch, tuple) and len(batch) == 4:
+                        batch = batch[:3]  # Drop metadata for training
                     _, labels, _ = batch
                     logits = self.forward_logits(batch).detach()
                 else:
